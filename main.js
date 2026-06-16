@@ -1,65 +1,45 @@
-// main.js
-import { init as initLocationMarquee } from './modules/locationMarquee.js'
-import { init as initTestimoniesVertical } from './modules/testimoniesVertical.js'
-import { init as initFaqAccordion } from './modules/faqAccordion.js'
-import { init as initLoadingBar } from './modules/loadingBar.js'
-import { init as initMapParcours } from './modules/mapParcours.js'
-import { init as initStepsSlider } from './modules/stepsSlider.js'
-import { init as initSpotModal } from './modules/spotModal.js'
+import { init as initPreloader } from './modules/preloader.js'
+import { init as initPageTransition } from './modules/pageTransition.js'
+import { init as initNavbarTheme } from './modules/navbarTheme.js'
+import { init as initLinkImageHover } from './modules/linkImageHover.js'
+import { init as initMarquee } from './modules/marquee.js'
+import { init as initExpertiseCircles } from './modules/expertiseCircles.js'
+import { init as initMarqueeVertical } from './modules/marqueeVertical.js'
+import { init as initTestimoniesSlider } from './modules/testimoniesSlider.js'
+import { init as initBlogSlider } from './modules/blogSlider.js'
+import { init as initScrollMarquee } from './modules/scrollMarquee.js'
+import { init as initSavoirFaire } from './modules/savoirFaire.js'
+import { init as initMethodoCercle } from './modules/methodoCercle.js'
+import { init as initEuropeMap } from './modules/europeMap.js'
+import { init as initFadeIn } from './modules/fadeIn.js'
+import { init as initEquipeCircle } from './modules/equipeCircle.js'
 
-console.log('🚀 Initialisation du site...')
+// Toujours actifs (présents sur toutes les pages)
+initPreloader()
+initPageTransition()
+initNavbarTheme()
 
+// Initialisés seulement si les éléments existent sur la page
 const moduleDetectors = {
-  locationMarquee: {
-    selector: '.marquee',
-    initFn: initLocationMarquee
-  },
-  testimoniesVertical: {
-    selector: '.is-slider',
-    initFn: initTestimoniesVertical
-  },
-  faqAccordion: {
-    selector: '.faq_accordion',
-    initFn: initFaqAccordion
-  },
-  loadingBar: {
-    selector: '.loading-bar_wrapper',
-    initFn: initLoadingBar
-  },
-  mapParcours: {
-    selector: '.map-parcours_content',
-    initFn: initMapParcours
-  },
-  stepsSlider: {
-    selector: '.splide.is-steps',
-    initFn: initStepsSlider
-  },
-  spotModal: {
-    selector: '.spot_modal',
-    initFn: initSpotModal
-  },
+  linkImageHover:   { selector: '[data-link-hover]',              initFn: initLinkImageHover },
+  marquee:          { selector: '.marquee',                       initFn: initMarquee },
+  marqueeVertical:  { selector: '.marquee-vertical',              initFn: initMarqueeVertical },
+  expertiseCircles: { selector: '.section_expertise',             initFn: initExpertiseCircles },
+  testimoniesSlider:{ selector: '.testimonies_arrow-next',        initFn: initTestimoniesSlider },
+  blogSlider:       { selector: '.blog_slider',                   initFn: initBlogSlider },
+  europeMap:        { selector: '[data-map="europe"]',            initFn: initEuropeMap },
+  scrollMarquee:    { selector: '.section_client-horizontal',     initFn: initScrollMarquee },
+  savoirFaire:      { selector: '.savoir-faire_categories-list',  initFn: initSavoirFaire },
+  methodoCercle:    { selector: '.methodo-slider_swiper',         initFn: initMethodoCercle },
+  fadeIn:           { selector: '[data-fade]',                   initFn: initFadeIn },
+  equipeCircle:     { selector: '.circle_loader',               initFn: initEquipeCircle },
 }
 
-let modulesLoaded = 0
-let modulesSkipped = 0
-
-Object.keys(moduleDetectors).forEach((moduleName) => {
-  const config = moduleDetectors[moduleName]
-  const elementExists = document.querySelector(config.selector)
-
-  if (elementExists) {
-    console.log(`📦 Init ${moduleName}...`)
-    try {
-      config.initFn()
-      modulesLoaded++
-    } catch (error) {
-      console.error(`❌ Erreur ${moduleName}:`, error)
-    }
-  } else {
-    console.log(`⏭️ Skip ${moduleName}`)
-    modulesSkipped++
+Object.entries(moduleDetectors).forEach(([name, { selector, initFn }]) => {
+  if (!document.querySelector(selector)) return
+  try {
+    initFn()
+  } catch (e) {
+    console.error(`[${name}]`, e)
   }
 })
-
-console.log(`✅ ${modulesLoaded} module(s) chargé(s), ${modulesSkipped} skippé(s)`)
-console.log('✅ Site initialisé !')
