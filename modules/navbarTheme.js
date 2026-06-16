@@ -9,10 +9,14 @@ const NAV_ELEMENTS = [
   '.navbar_dropdown-toggle',
   '.nav_locales-dropdown',
   '.locale_link',
+]
+
+const MENU_ICON_LINES = [
   '.menu-icon-top',
   '.menu-icon-middle',
   '.menu-icon-bottom',
 ]
+
 const COLOR_LIGHT = '#0e1e1b'
 const COLOR_DEFAULT = '#e4e2d6'
 
@@ -38,6 +42,12 @@ export function init() {
           el.style.color = color
         })
       })
+      MENU_ICON_LINES.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((el) => {
+          el.style.backgroundColor = color
+        })
+      })
+      document.querySelectorAll('.menu-icon').forEach((el) => { el.style.borderColor = color })
       document.querySelectorAll('.navbar_menu-button').forEach((el) => { el.style.borderColor = color })
     }
 
