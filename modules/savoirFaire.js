@@ -14,14 +14,10 @@ export function init() {
   if (!catItems.length || !cardItems.length) return
 
   const count = catItems.length
-  const VISIBLE = Math.min(count, 5)
+  const isMobile = window.matchMedia('(max-width: 479px)').matches
+  const VISIBLE = isMobile ? Math.min(count, 3) : Math.min(count, 5)
   let animating = false
   let activeCard = 0
-
-  // Hauteur réelle d'un item (offsetHeight + gap éventuel)
-  const itemH = count > 1
-    ? catItems[1].getBoundingClientRect().top - catItems[0].getBoundingClientRect().top
-    : catItems[0].offsetHeight
 
   function opacityForPos(pos) {
     return (VISIBLE - pos) / VISIBLE
@@ -29,7 +25,6 @@ export function init() {
 
   function updateCatStyles(animate = true) {
     catItems.forEach((item, i) => {
-      item.style.borderBottom = i === 0 ? '0.4px solid #e4e2d6' : 'none'
       const opacity = i < VISIBLE ? opacityForPos(i) : 0
       animate
         ? gsap.to(item, { opacity, duration: 0.3 })
@@ -37,58 +32,116 @@ export function init() {
     })
   }
 
-  // Setup catégories
-  categoriesList.style.overflow = 'hidden'
-  categoriesList.style.height = itemH * VISIBLE + 'px'
-
-  // Setup cards : superposition via grid
+  // Setup cards : superposition via grid (identique desktop et mobile)
   rightContent.style.display = 'grid'
   cardItems.forEach((card, i) => {
     card.style.gridArea = '1/1'
     gsap.set(card, { y: i === 0 ? 0 : '100%' })
   })
 
-  function goTo(dir) {
-    if (animating) return
-    animating = true
+  let goTo
 
-    if (dir === 1) {
-      // Next : slide liste vers le haut, reorder après
-      gsap.to(categoriesList, {
-        y: -itemH,
-        duration: 0.45,
-        ease: 'power2.inOut',
-        onComplete: () => {
-          categoriesList.appendChild(catItems[0])
-          catItems.push(catItems.shift())
-          gsap.set(categoriesList, { y: 0 })
-          updateCatStyles()
-          animating = false
-        },
-      })
-    } else {
-      // Prev : reorder d'abord, puis slide vers le bas
-      const last = catItems[catItems.length - 1]
-      categoriesList.insertBefore(last, catItems[0])
-      catItems.unshift(catItems.pop())
-      gsap.set(categoriesList, { y: -itemH })
-      updateCatStyles()
-      gsap.to(categoriesList, {
-        y: 0,
-        duration: 0.45,
-        ease: 'power2.inOut',
-        onComplete: () => { animating = false },
-      })
+  if (isMobile) {
+    // ── MODE MOBILE : catégories en scroll horizontal ──
+    categoriesList.style.display = 'flex'
+    categoriesList.style.flexDirection = 'row'
+    categoriesList.style.overflow = 'hidden'
+
+    const itemW = count > 1
+      ? catItems[1].getBoundingClientRect().left - catItems[0].getBoundingClientRect().left
+      : catItems[0].offsetWidth
+
+    categoriesList.style.width = itemW * VISIBLE + 'px'
+
+    goTo = (dir) => {
+      if (animating) return
+      animating = true
+
+      if (dir === 1) {
+        gsap.to(categoriesList, {
+          x: -itemW,
+          duration: 0.45,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            categoriesList.appendChild(catItems[0])
+            catItems.push(catItems.shift())
+            gsap.set(categoriesList, { x: 0 })
+            updateCatStyles()
+            animating = false
+          },
+        })
+      } else {
+        const last = catItems[catItems.length - 1]
+        categoriesList.insertBefore(last, catItems[0])
+        catItems.unshift(catItems.pop())
+        gsap.set(categoriesList, { x: -itemW })
+        updateCatStyles()
+        gsap.to(categoriesList, {
+          x: 0,
+          duration: 0.45,
+          ease: 'power2.inOut',
+          onComplete: () => { animating = false },
+        })
+      }
+
+      // Cards : scroll vertical inchangé
+      const outCard = cardItems[activeCard]
+      activeCard = (activeCard + dir + count) % count
+      const inCard = cardItems[activeCard]
+
+      gsap.set(inCard, { y: dir === 1 ? '100%' : '-100%' })
+      gsap.to(outCard, { y: dir === 1 ? '-100%' : '100%', duration: 0.45, ease: 'power2.inOut' })
+      gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
     }
 
-    // Cards : slide bas → haut (next) ou haut → bas (prev)
-    const outCard = cardItems[activeCard]
-    activeCard = (activeCard + dir + count) % count
-    const inCard = cardItems[activeCard]
+  } else {
+    // ── MODE DESKTOP : catégories en scroll vertical ──
+    const itemH = count > 1
+      ? catItems[1].getBoundingClientRect().top - catItems[0].getBoundingClientRect().top
+      : catItems[0].offsetHeight
 
-    gsap.set(inCard, { y: dir === 1 ? '100%' : '-100%' })
-    gsap.to(outCard, { y: dir === 1 ? '-100%' : '100%', duration: 0.45, ease: 'power2.inOut' })
-    gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
+    categoriesList.style.overflow = 'hidden'
+    categoriesList.style.height = itemH * VISIBLE + 'px'
+
+    goTo = (dir) => {
+      if (animating) return
+      animating = true
+
+      if (dir === 1) {
+        gsap.to(categoriesList, {
+          y: -itemH,
+          duration: 0.45,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            categoriesList.appendChild(catItems[0])
+            catItems.push(catItems.shift())
+            gsap.set(categoriesList, { y: 0 })
+            updateCatStyles()
+            animating = false
+          },
+        })
+      } else {
+        const last = catItems[catItems.length - 1]
+        categoriesList.insertBefore(last, catItems[0])
+        catItems.unshift(catItems.pop())
+        gsap.set(categoriesList, { y: -itemH })
+        updateCatStyles()
+        gsap.to(categoriesList, {
+          y: 0,
+          duration: 0.45,
+          ease: 'power2.inOut',
+          onComplete: () => { animating = false },
+        })
+      }
+
+      const outCard = cardItems[activeCard]
+      activeCard = (activeCard + dir + count) % count
+      const inCard = cardItems[activeCard]
+
+      gsap.set(inCard, { y: dir === 1 ? '100%' : '-100%' })
+      gsap.to(outCard, { y: dir === 1 ? '-100%' : '100%', duration: 0.45, ease: 'power2.inOut' })
+      gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
+    }
   }
 
   if (nextBtn) nextBtn.addEventListener('click', () => goTo(1))
