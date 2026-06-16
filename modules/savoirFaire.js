@@ -15,22 +15,8 @@ export function init() {
 
   const count = catItems.length
   const isMobile = window.matchMedia('(max-width: 479px)').matches
-  const VISIBLE = isMobile ? Math.min(count, 3) : Math.min(count, 5)
   let animating = false
   let activeCard = 0
-
-  function opacityForPos(pos) {
-    return (VISIBLE - pos) / VISIBLE
-  }
-
-  function updateCatStyles(animate = true) {
-    catItems.forEach((item, i) => {
-      const opacity = i < VISIBLE ? opacityForPos(i) : 0
-      animate
-        ? gsap.to(item, { opacity, duration: 0.3 })
-        : gsap.set(item, { opacity })
-    })
-  }
 
   // Setup cards : superposition via grid (identique desktop et mobile)
   rightContent.style.display = 'grid'
@@ -39,23 +25,41 @@ export function init() {
     gsap.set(card, { y: i === 0 ? 0 : '100%' })
   })
 
+  function slideCards(dir) {
+    const outCard = cardItems[activeCard]
+    activeCard = (activeCard + dir + count) % count
+    const inCard = cardItems[activeCard]
+    gsap.set(inCard, { y: dir === 1 ? '100%' : '-100%' })
+    gsap.to(outCard, { y: dir === 1 ? '-100%' : '100%', duration: 0.45, ease: 'power2.inOut' })
+    gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
+  }
+
   let goTo
 
   if (isMobile) {
-    // ── MODE MOBILE : catégories en scroll horizontal ──
-    categoriesList.style.display = 'flex'
-    categoriesList.style.flexDirection = 'row'
+    // ── MODE MOBILE : slider horizontal simple ──
+    // Le layout flex-row et les gaps sont gérés par Webflow
     categoriesList.style.overflow = 'hidden'
 
-    const itemW = count > 1
-      ? catItems[1].getBoundingClientRect().left - catItems[0].getBoundingClientRect().left
-      : catItems[0].offsetWidth
+    function getMobileItemW() {
+      // Mesuré avant toute modif DOM, avec les positions réelles courantes
+      return count > 1
+        ? catItems[1].getBoundingClientRect().left - catItems[0].getBoundingClientRect().left
+        : catItems[0].offsetWidth
+    }
 
-    categoriesList.style.width = itemW * VISIBLE + 'px'
+    function updateMobileOpacity() {
+      catItems.forEach((item, i) => {
+        gsap.set(item, { opacity: (count - i) / count })
+      })
+    }
 
     goTo = (dir) => {
       if (animating) return
       animating = true
+
+      // Mesure dynamique avant toute modification du DOM
+      const itemW = getMobileItemW()
 
       if (dir === 1) {
         gsap.to(categoriesList, {
@@ -66,7 +70,7 @@ export function init() {
             categoriesList.appendChild(catItems[0])
             catItems.push(catItems.shift())
             gsap.set(categoriesList, { x: 0 })
-            updateCatStyles()
+            updateMobileOpacity()
             animating = false
           },
         })
@@ -74,31 +78,44 @@ export function init() {
         const last = catItems[catItems.length - 1]
         categoriesList.insertBefore(last, catItems[0])
         catItems.unshift(catItems.pop())
-        gsap.set(categoriesList, { x: -itemW })
-        updateCatStyles()
-        gsap.to(categoriesList, {
-          x: 0,
-          duration: 0.45,
-          ease: 'power2.inOut',
-          onComplete: () => { animating = false },
-        })
+        updateMobileOpacity()
+        gsap.fromTo(categoriesList,
+          { x: -itemW },
+          {
+            x: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+            onComplete: () => { animating = false },
+          }
+        )
       }
 
-      // Cards : scroll vertical inchangé
-      const outCard = cardItems[activeCard]
-      activeCard = (activeCard + dir + count) % count
-      const inCard = cardItems[activeCard]
-
-      gsap.set(inCard, { y: dir === 1 ? '100%' : '-100%' })
-      gsap.to(outCard, { y: dir === 1 ? '-100%' : '100%', duration: 0.45, ease: 'power2.inOut' })
-      gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
+      slideCards(dir)
     }
 
+    updateMobileOpacity()
+
   } else {
-    // ── MODE DESKTOP : catégories en scroll vertical ──
+    // ── MODE DESKTOP : catégories en scroll vertical (comportement original) ──
+    const VISIBLE = Math.min(count, 5)
+
     const itemH = count > 1
       ? catItems[1].getBoundingClientRect().top - catItems[0].getBoundingClientRect().top
       : catItems[0].offsetHeight
+
+    function opacityForPos(pos) {
+      return (VISIBLE - pos) / VISIBLE
+    }
+
+    function updateCatStyles(animate = true) {
+      catItems.forEach((item, i) => {
+        item.style.borderBottom = i === 0 ? '0.4px solid #e4e2d6' : 'none'
+        const opacity = i < VISIBLE ? opacityForPos(i) : 0
+        animate
+          ? gsap.to(item, { opacity, duration: 0.3 })
+          : gsap.set(item, { opacity })
+      })
+    }
 
     categoriesList.style.overflow = 'hidden'
     categoriesList.style.height = itemH * VISIBLE + 'px'
@@ -108,6 +125,8 @@ export function init() {
       animating = true
 
       if (dir === 1) {
+        // Pré-setter l'opacité de l'item entrant par le bas avant le slide
+        if (catItems[VISIBLE]) gsap.set(catItems[VISIBLE], { opacity: 1 / VISIBLE })
         gsap.to(categoriesList, {
           y: -itemH,
           duration: 0.45,
@@ -116,6 +135,9 @@ export function init() {
             categoriesList.appendChild(catItems[0])
             catItems.push(catItems.shift())
             gsap.set(categoriesList, { y: 0 })
+            // Snap instantané de l'item qui vient d'atterrir en bas
+            const lastIdx = catItems.length - 1
+            gsap.set(catItems[lastIdx], { opacity: lastIdx < VISIBLE ? opacityForPos(lastIdx) : 0 })
             updateCatStyles()
             animating = false
           },
@@ -124,28 +146,24 @@ export function init() {
         const last = catItems[catItems.length - 1]
         categoriesList.insertBefore(last, catItems[0])
         catItems.unshift(catItems.pop())
-        gsap.set(categoriesList, { y: -itemH })
-        updateCatStyles()
-        gsap.to(categoriesList, {
-          y: 0,
-          duration: 0.45,
-          ease: 'power2.inOut',
-          onComplete: () => { animating = false },
-        })
+        updateCatStyles(false)
+        gsap.fromTo(categoriesList,
+          { y: -itemH },
+          {
+            y: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+            onComplete: () => { animating = false },
+          }
+        )
       }
 
-      const outCard = cardItems[activeCard]
-      activeCard = (activeCard + dir + count) % count
-      const inCard = cardItems[activeCard]
-
-      gsap.set(inCard, { y: dir === 1 ? '100%' : '-100%' })
-      gsap.to(outCard, { y: dir === 1 ? '-100%' : '100%', duration: 0.45, ease: 'power2.inOut' })
-      gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
+      slideCards(dir)
     }
+
+    updateCatStyles(false)
   }
 
   if (nextBtn) nextBtn.addEventListener('click', () => goTo(1))
   if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1))
-
-  updateCatStyles(false)
 }
