@@ -34,15 +34,23 @@ export function init() {
     gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
   }
 
+  function jumpCards(steps) {
+    const outCard = cardItems[activeCard]
+    activeCard = (activeCard + steps + count) % count
+    const inCard = cardItems[activeCard]
+    gsap.set(inCard, { y: '100%' })
+    gsap.to(outCard, { y: '-100%', duration: 0.45, ease: 'power2.inOut' })
+    gsap.to(inCard, { y: 0, duration: 0.45, ease: 'power2.inOut' })
+  }
+
   let goTo
+  let jumpTo
 
   if (isMobile) {
     // ── MODE MOBILE : slider horizontal simple ──
-    // Le layout flex-row et les gaps sont gérés par Webflow
     categoriesList.style.overflow = 'hidden'
 
     function getMobileItemW() {
-      // Mesuré avant toute modif DOM, avec les positions réelles courantes
       return count > 1
         ? catItems[1].getBoundingClientRect().left - catItems[0].getBoundingClientRect().left
         : catItems[0].offsetWidth
@@ -57,8 +65,6 @@ export function init() {
     goTo = (dir) => {
       if (animating) return
       animating = true
-
-      // Mesure dynamique avant toute modification du DOM
       const itemW = getMobileItemW()
 
       if (dir === 1) {
@@ -93,10 +99,33 @@ export function init() {
       slideCards(dir)
     }
 
+    jumpTo = (steps) => {
+      if (animating || steps <= 0) return
+      animating = true
+      const itemW = getMobileItemW()
+
+      gsap.to(categoriesList, {
+        x: -steps * itemW,
+        duration: 0.45,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          for (let j = 0; j < steps; j++) {
+            categoriesList.appendChild(catItems[0])
+            catItems.push(catItems.shift())
+          }
+          gsap.set(categoriesList, { x: 0 })
+          updateMobileOpacity()
+          animating = false
+        },
+      })
+
+      jumpCards(steps)
+    }
+
     updateMobileOpacity()
 
   } else {
-    // ── MODE DESKTOP : catégories en scroll vertical (comportement original) ──
+    // ── MODE DESKTOP : catégories en scroll vertical ──
     const VISIBLE = Math.min(count, 5)
 
     const itemH = count > 1
@@ -125,7 +154,6 @@ export function init() {
       animating = true
 
       if (dir === 1) {
-        // Pré-setter l'opacité de l'item entrant par le bas avant le slide
         if (catItems[VISIBLE]) gsap.set(catItems[VISIBLE], { opacity: 1 / VISIBLE })
         gsap.to(categoriesList, {
           y: -itemH,
@@ -135,7 +163,6 @@ export function init() {
             categoriesList.appendChild(catItems[0])
             catItems.push(catItems.shift())
             gsap.set(categoriesList, { y: 0 })
-            // Snap instantané de l'item qui vient d'atterrir en bas
             const lastIdx = catItems.length - 1
             gsap.set(catItems[lastIdx], { opacity: lastIdx < VISIBLE ? opacityForPos(lastIdx) : 0 })
             updateCatStyles()
@@ -161,9 +188,48 @@ export function init() {
       slideCards(dir)
     }
 
+    jumpTo = (steps) => {
+      if (animating || steps <= 0) return
+      animating = true
+
+      // Pré-setter les items qui vont entrer par le bas
+      for (let j = VISIBLE; j < VISIBLE + steps && j < count; j++) {
+        gsap.set(catItems[j], { opacity: 1 / VISIBLE })
+      }
+
+      gsap.to(categoriesList, {
+        y: -steps * itemH,
+        duration: 0.45,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          for (let j = 0; j < steps; j++) {
+            categoriesList.appendChild(catItems[0])
+            catItems.push(catItems.shift())
+          }
+          gsap.set(categoriesList, { y: 0 })
+          // Snap les items qui viennent d'atterrir en bas
+          for (let j = catItems.length - steps; j < catItems.length; j++) {
+            gsap.set(catItems[j], { opacity: j < VISIBLE ? opacityForPos(j) : 0 })
+          }
+          updateCatStyles()
+          animating = false
+        },
+      })
+
+      jumpCards(steps)
+    }
+
     updateCatStyles(false)
   }
 
   if (nextBtn) nextBtn.addEventListener('click', () => goTo(1))
   if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1))
+
+  catItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      const i = catItems.indexOf(item)
+      if (i <= 0) return
+      jumpTo(i)
+    })
+  })
 }
