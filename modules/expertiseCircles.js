@@ -25,9 +25,8 @@ export function init() {
       return (er.left + er.width / 2) - (wr.left + wr.width / 2)
     }
 
-    // État étalé : chaque cercle poussé proportionnellement à son offset naturel
-    // (multiplicateur > 0 = plus écarté que la position flex naturelle)
-    const SPREAD_FACTOR = 0.8
+    const isMobile = window.matchMedia('(max-width: 767px)').matches
+    const SPREAD_FACTOR = isMobile ? 0.2 : 0.8
 
     const spreadX  = circles.map(el => flexOffset(el) * SPREAD_FACTOR)
     const overlapX = circles.map(el => -flexOffset(el))
