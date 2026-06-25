@@ -25,8 +25,19 @@ export function init() {
       return (er.left + er.width / 2) - (wr.left + wr.width / 2)
     }
 
-    // x à appliquer pour ramener chaque cercle au centre (superposition)
+    const EXTRA = 60 // px supplémentaires au-delà de la position naturelle
+
+    // État étalé : position naturelle + extra dans la même direction
+    const spreadX = circles.map(el => {
+      const fo = flexOffset(el)
+      return fo > 0 ? EXTRA : fo < 0 ? -EXTRA : 0
+    })
+
+    // État superposé : tous au centre du wrapper
     const overlapX = circles.map(el => -flexOffset(el))
+
+    // Partir de l'état étalé
+    circles.forEach((el, i) => gsap.set(el, { x: spreadX[i] }))
 
     // Timeline : étalés → superposés → étalés, en boucle
     const tl = gsap.timeline({ repeat: -1, yoyo: true, paused: true })
