@@ -25,15 +25,11 @@ export function init() {
       return (er.left + er.width / 2) - (wr.left + wr.width / 2)
     }
 
-    const EXTRA = 60 // px supplémentaires au-delà de la position naturelle
+    // État étalé : chaque cercle poussé proportionnellement à son offset naturel
+    // (multiplicateur > 0 = plus écarté que la position flex naturelle)
+    const SPREAD_FACTOR = 0.8
 
-    // État étalé : position naturelle + extra dans la même direction
-    const spreadX = circles.map(el => {
-      const fo = flexOffset(el)
-      return fo > 0 ? EXTRA : fo < 0 ? -EXTRA : 0
-    })
-
-    // État superposé : tous au centre du wrapper
+    const spreadX  = circles.map(el => flexOffset(el) * SPREAD_FACTOR)
     const overlapX = circles.map(el => -flexOffset(el))
 
     // Partir de l'état étalé

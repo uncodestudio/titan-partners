@@ -9,7 +9,7 @@ export function init() {
   if (!shape1 && !shape2 && !shape3) return
 
   const TURNS = 3
-  const DURATION = TURNS * 4 // 4s par tour → 12s pour 3 tours
+  const DURATION = TURNS * 5 // 5s par tour → 15s pour 3 tours
 
   const tweens = []
 
