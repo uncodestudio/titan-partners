@@ -13,6 +13,7 @@ import { init as initMethodoCercle } from './modules/methodoCercle.js'
 import { init as initEuropeMap } from './modules/europeMap.js'
 import { init as initFadeIn } from './modules/fadeIn.js'
 import { init as initEquipeCircle } from './modules/equipeCircle.js'
+import { init as initAdnShapes } from './modules/adnShapes.js'
 
 // Toujours actifs (présents sur toutes les pages)
 initPreloader()
@@ -33,6 +34,7 @@ const moduleDetectors = {
   methodoCercle:    { selector: '.methodo-slider_swiper',         initFn: initMethodoCercle },
   fadeIn:           { selector: '[data-fade]',                   initFn: initFadeIn },
   equipeCircle:     { selector: '.circle_loader',               initFn: initEquipeCircle },
+  adnShapes:        { selector: '.layout-adn_shape1',           initFn: initAdnShapes },
 }
 
 Object.entries(moduleDetectors).forEach(([name, { selector, initFn }]) => {
