@@ -35,6 +35,16 @@ export function init() {
     gsap.set(els, { yPercent: -100 })
   }
 
+  // Bfcache : page restaurée via bouton retour/avant → supprimer les rideaux
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      gsap.killTweensOf(els)
+      gsap.set(els, { yPercent: -100 })
+      document.documentElement.style.visibility = ''
+      sessionStorage.removeItem('page-transition')
+    }
+  })
+
   // Intercept liens internes
   document.addEventListener('click', (e) => {
     const link = e.target.closest('a[href]')
