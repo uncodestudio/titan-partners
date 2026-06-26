@@ -124,6 +124,37 @@ export function init() {
 
     updateMobileOpacity()
 
+    // Mobile portrait : scroll-driven
+    if (
+      count > 1 &&
+      window.matchMedia('(orientation: portrait)').matches &&
+      typeof ScrollTrigger !== 'undefined'
+    ) {
+      gsap.registerPlugin(ScrollTrigger)
+      const section = categoriesList.closest('section')
+      if (section) {
+        let scrollIndex = 0
+        ScrollTrigger.create({
+          trigger: section,
+          pin: true,
+          start: 'top top',
+          end: `+=${(count - 1) * 400}`,
+          snap: {
+            snapTo: 1 / (count - 1),
+            duration: { min: 0.3, max: 0.6 },
+            delay: 0.05,
+          },
+          onUpdate(self) {
+            const newIndex = Math.round(self.progress * (count - 1))
+            if (newIndex === scrollIndex || animating) return
+            const dir = newIndex > scrollIndex ? 1 : -1
+            scrollIndex = newIndex
+            goTo(dir)
+          },
+        })
+      }
+    }
+
   } else {
     // ── MODE DESKTOP : catégories en scroll vertical ──
     const VISIBLE = Math.min(count, 5)
