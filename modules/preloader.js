@@ -30,7 +30,7 @@ export function init() {
     }
     gsap.to(preloader, {
       yPercent: -100,
-      duration: 0.45,
+      duration: 0.6,
       ease: 'power2.inOut',
       onComplete: () => { preloader.style.display = 'none' },
     })
@@ -40,5 +40,5 @@ export function init() {
     video.addEventListener('ended', hide, { once: true })
   }
 
-  setTimeout(hide, 5000)
+  setTimeout(hide, 4500)
 }
