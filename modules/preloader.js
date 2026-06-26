@@ -30,7 +30,7 @@ export function init() {
     }
     gsap.to(preloader, {
       yPercent: -100,
-      duration: 0.7,
+      duration: 0.45,
       ease: 'power2.inOut',
       onComplete: () => { preloader.style.display = 'none' },
     })
