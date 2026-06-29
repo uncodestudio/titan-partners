@@ -14,11 +14,13 @@ import { init as initEuropeMap } from './modules/europeMap.js'
 import { init as initFadeIn } from './modules/fadeIn.js'
 import { init as initEquipeCircle } from './modules/equipeCircle.js'
 import { init as initAdnShapes } from './modules/adnShapes.js'
+import { init as initNavbarScroll } from './modules/navbarScroll.js'
 
 // Toujours actifs (présents sur toutes les pages)
 initPreloader()
 initPageTransition()
 initNavbarTheme()
+initNavbarScroll()
 
 // Initialisés seulement si les éléments existent sur la page
 const moduleDetectors = {
