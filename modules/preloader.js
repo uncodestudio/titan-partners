@@ -4,9 +4,12 @@ export function init() {
   const preloader = document.getElementById('preloader')
   if (!preloader) return
 
+  const isMobile = matchMedia('(max-width: 767px)').matches
+  const navType = performance.getEntriesByType('navigation')[0]?.type
+  const isReload = navType === 'reload'
   const isInternal = document.referrer.includes(window.location.hostname)
 
-  if (isInternal) {
+  if (isMobile || isReload || isInternal) {
     preloader.style.display = 'none'
     return
   }
