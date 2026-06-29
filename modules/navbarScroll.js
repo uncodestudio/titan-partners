@@ -27,7 +27,8 @@ export function init() {
     if (delta > 0 && visible) {
       // Scroll bas → masquer (hauteur réelle + 8px buffer pour box-shadow)
       visible = false
-      gsap.to(navbar, { y: -(navbar.offsetHeight + 8), duration: 0.35, ease: 'power2.inOut' })
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+      gsap.to(navbar, { y: -(8 * rem), duration: 0.35, ease: 'power2.inOut' })
     } else if (delta < 0 && !visible) {
       // Scroll haut → afficher
       visible = true
