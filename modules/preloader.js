@@ -43,5 +43,5 @@ export function init() {
     video.addEventListener('ended', hide, { once: true })
   }
 
-  setTimeout(hide, 3200)
+  setTimeout(hide, 3000)
 }
