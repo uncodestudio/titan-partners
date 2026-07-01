@@ -1,4 +1,5 @@
 export function init() {
+  if (typeof gsap === 'undefined') return
   if (window.matchMedia('(min-width: 768px)').matches) return
 
   const wrapper = document.querySelector('.cta-proof_mobile-wrapper')
@@ -7,28 +8,30 @@ export function init() {
   if (!wrapper || !content) return
 
   function setup() {
-    const overflow = content.offsetWidth - wrapper.offsetWidth
-    if (overflow <= 0) return
+    // Clone pour boucle seamless
+    const clone = content.cloneNode(true)
+    wrapper.appendChild(clone)
 
-    let scheduled = false
+    wrapper.style.overflow = 'hidden'
+    content.style.flexShrink = '0'
+    clone.style.flexShrink = '0'
 
-    function update() {
-      if (scheduled) return
-      scheduled = true
-      requestAnimationFrame(() => {
-        const rect = wrapper.getBoundingClientRect()
-        const vh = window.innerHeight
-        // start : wrapper.top = 25% du viewport
-        // end   : 75% de la hauteur du wrapper scrollé depuis le start
-        const scrollRange = wrapper.offsetHeight * 0.75
-        const progress = Math.max(0, Math.min(1, (vh * 0.25 - rect.top) / scrollRange))
-        content.style.transform = `translateX(${-overflow * progress}px)`
-        scheduled = false
-      })
-    }
+    const SPEED = 60 // px/s
+    const duration = content.offsetWidth / SPEED
 
-    window.addEventListener('scroll', update, { passive: true })
-    update()
+    // xPercent -100 sur chaque élément = boucle seamless
+    const tween = gsap.to([content, clone], {
+      xPercent: -100,
+      duration,
+      ease: 'none',
+      repeat: -1,
+    })
+
+    // Pause quand hors écran
+    const observer = new IntersectionObserver(entries => {
+      entries[0].isIntersecting ? tween.play() : tween.pause()
+    }, { threshold: 0 })
+    observer.observe(wrapper)
   }
 
   if (document.readyState === 'complete') {
