@@ -21,7 +21,7 @@ export function init() {
         padding: { right: '1.5rem' },
       },
       767: {
-        perPage: 2,
+        perPage: 1.1,
         gap: '0.75rem',
         padding: { right: '1rem' },
       },
