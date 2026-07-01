@@ -15,6 +15,7 @@ import { init as initFadeIn } from './modules/fadeIn.js'
 import { init as initEquipeCircle } from './modules/equipeCircle.js'
 import { init as initAdnShapes } from './modules/adnShapes.js'
 import { init as initNavbarScroll } from './modules/navbarScroll.js'
+import { init as initChiffreScroll } from './modules/chiffreScroll.js'
 
 // Toujours actifs (présents sur toutes les pages)
 initPreloader()
@@ -37,6 +38,7 @@ const moduleDetectors = {
   fadeIn:           { selector: '[data-fade]',                   initFn: initFadeIn },
   equipeCircle:     { selector: '.circle_loader',               initFn: initEquipeCircle },
   adnShapes:        { selector: '.layout-adn_shape1',           initFn: initAdnShapes },
+  chiffreScroll:    { selector: '.chiffre_right-list',          initFn: initChiffreScroll },
 }
 
 Object.entries(moduleDetectors).forEach(([name, { selector, initFn }]) => {
