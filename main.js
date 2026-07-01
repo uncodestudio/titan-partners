@@ -38,7 +38,7 @@ const moduleDetectors = {
   fadeIn:           { selector: '[data-fade]',                   initFn: initFadeIn },
   equipeCircle:     { selector: '.circle_loader',               initFn: initEquipeCircle },
   adnShapes:        { selector: '.layout-adn_shape1',           initFn: initAdnShapes },
-  chiffreScroll:    { selector: '.chiffre_right-list',          initFn: initChiffreScroll },
+  chiffreScroll:    { selector: '.chiffres_right-list',         initFn: initChiffreScroll },
 }
 
 Object.entries(moduleDetectors).forEach(([name, { selector, initFn }]) => {
