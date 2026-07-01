@@ -11,10 +11,6 @@ export function init() {
 
   if (!wheel || !hours.length || !wrapper) return
 
-  // Destroy Swiper si déjà initialisé par Webflow
-  const swiperEl = wrapper.closest('.methodo-slider_swiper')
-  if (swiperEl?.swiper) swiperEl.swiper.destroy(true, true)
-
   const slides = [...wrapper.querySelectorAll('.swiper-slide')]
   if (!slides.length) return
 
