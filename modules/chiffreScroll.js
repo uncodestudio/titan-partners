@@ -1,5 +1,4 @@
 export function init() {
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return
   if (window.matchMedia('(min-width: 768px)').matches) return
 
   const section = document.querySelector('.section_chiffres')
@@ -8,28 +7,29 @@ export function init() {
 
   if (!section || !list || !wrapper) return
 
-  gsap.registerPlugin(ScrollTrigger)
-
   function setup() {
     const overflow = list.offsetWidth - wrapper.offsetWidth
     if (overflow <= 0) return
 
-    gsap.fromTo(list,
-      { x: 0 },
-      {
-        x: -overflow,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true,
-        },
-      }
-    )
+    let scheduled = false
+
+    function update() {
+      if (scheduled) return
+      scheduled = true
+      requestAnimationFrame(() => {
+        const rect = section.getBoundingClientRect()
+        const vh = window.innerHeight
+        // 0 quand la section entre par le bas, 1 quand elle sort par le haut
+        const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)))
+        list.style.transform = `translateX(${-overflow * progress}px)`
+        scheduled = false
+      })
+    }
+
+    window.addEventListener('scroll', update, { passive: true })
+    update()
   }
 
-  // Attendre que tout soit chargé pour des mesures correctes
   if (document.readyState === 'complete') {
     setup()
   } else {
