@@ -2,9 +2,9 @@ export function init() {
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return
   if (window.matchMedia('(min-width: 768px)').matches) return
 
-  const section = document.querySelector('.section_chiffre')
-  const list    = document.querySelector('.chiffre_right-list')
-  const wrapper = document.querySelector('.chiffre_right-wrapper')
+  const section = document.querySelector('.section_chiffres')
+  const list    = document.querySelector('.chiffres_right-list')
+  const wrapper = document.querySelector('.chiffres_right-wrapper')
 
   if (!section || !list || !wrapper) return
 
