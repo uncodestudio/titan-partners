@@ -40,7 +40,7 @@ const moduleDetectors = {
   equipeCircle:     { selector: '.circle_loader',               initFn: initEquipeCircle },
   adnShapes:        { selector: '.layout-adn_shape1',           initFn: initAdnShapes },
   chiffreScroll:    { selector: '.chiffres_right-list',         initFn: initChiffreScroll },
-  ctaProofScroll:   { selector: '.cta-proof_mobile-content',   initFn: initCtaProofScroll },
+  ctaProofScroll:   { selector: '.cta-proof_mobile-wrapper, .proof_mobile-wrapper', initFn: initCtaProofScroll },
 }
 
 Object.entries(moduleDetectors).forEach(([name, { selector, initFn }]) => {

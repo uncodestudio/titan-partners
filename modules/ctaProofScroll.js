@@ -5,8 +5,8 @@ export function init() {
   const unit = 100 / 3
   const SPEED = 20
 
-  document.querySelectorAll('.cta-proof_mobile-wrapper').forEach(wrapper => {
-    const content = wrapper.querySelector('.cta-proof_mobile-content')
+  document.querySelectorAll('.cta-proof_mobile-wrapper, .proof_mobile-wrapper').forEach(wrapper => {
+    const content = wrapper.querySelector('.cta-proof_mobile-content, .proof_mobile-content')
     if (!content) return
 
     const original = content.innerHTML
