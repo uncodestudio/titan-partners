@@ -7,40 +7,29 @@ export function init() {
 
   if (!wrapper || !content) return
 
-  function setup() {
-    const clone = content.cloneNode(true)
-    const contentW = content.offsetWidth
+  // Triple le contenu pour la boucle seamless (même technique que marquee.js)
+  const original = content.innerHTML
+  content.innerHTML = original + original + original
 
-    // Track flex pour mettre original + clone côte à côte
-    const track = document.createElement('div')
-    track.style.cssText = 'display:flex;flex-wrap:nowrap;will-change:transform;'
-    wrapper.insertBefore(track, content)
-    track.appendChild(content)
-    track.appendChild(clone)
+  wrapper.style.overflow = 'hidden'
 
-    wrapper.style.overflow = 'hidden'
+  const unit = 100 / 3
+  const SPEED = 20 // secondes pour 1 cycle (ajustable)
 
-    const SPEED = 60 // px/s
-    const duration = contentW / SPEED
+  gsap.set(content, { force3D: true, xPercent: 0 })
 
-    // On anime le track de 0 à -contentW, le repeat repart à 0 = seamless
-    const tween = gsap.to(track, {
-      x: -contentW,
-      duration,
-      ease: 'none',
-      repeat: -1,
-    })
+  const tween = gsap.to(content, {
+    xPercent: -unit,
+    duration: SPEED,
+    ease: 'none',
+    repeat: -1,
+    modifiers: {
+      xPercent: gsap.utils.wrap(-unit, 0),
+    },
+  })
 
-    // Pause quand hors écran
-    const observer = new IntersectionObserver(entries => {
-      entries[0].isIntersecting ? tween.play() : tween.pause()
-    }, { threshold: 0 })
-    observer.observe(wrapper)
-  }
-
-  if (document.readyState === 'complete') {
-    setup()
-  } else {
-    window.addEventListener('load', setup, { once: true })
-  }
+  const observer = new IntersectionObserver(entries => {
+    entries[0].isIntersecting ? tween.play() : tween.pause()
+  }, { threshold: 0 })
+  observer.observe(wrapper)
 }
