@@ -21,9 +21,8 @@ export function init() {
         ease: 'none',
         scrollTrigger: {
           trigger: section,
-          start: 'top top',
-          end: `+=${overflow}`,
-          pin: true,
+          start: 'top bottom',
+          end: 'bottom top',
           scrub: true,
         },
       }
