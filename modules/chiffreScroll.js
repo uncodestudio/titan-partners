@@ -11,7 +11,22 @@ export function init() {
     const overflow = list.offsetWidth - wrapper.offsetWidth
     if (overflow <= 0) return
 
+    const LERP = 0.08 // snap strength : 0 = très mou, 1 = direct
+    let targetX = 0
+    let currentX = 0
+    let rafId = null
     let scheduled = false
+
+    function tick() {
+      currentX += (targetX - currentX) * LERP
+      list.style.transform = `translateX(${currentX}px)`
+      if (Math.abs(currentX - targetX) > 0.1) {
+        rafId = requestAnimationFrame(tick)
+      } else {
+        list.style.transform = `translateX(${targetX}px)`
+        rafId = null
+      }
+    }
 
     function update() {
       if (scheduled) return
@@ -19,13 +34,12 @@ export function init() {
       requestAnimationFrame(() => {
         const rect = section.getBoundingClientRect()
         const vh = window.innerHeight
-        // start : haut écran touche haut section (rect.top = 0)
-        // end   : bas écran touche bas section (rect.top = vh - rect.height)
         const scrollRange = rect.height - vh
         const progress = scrollRange > 0
           ? Math.max(0, Math.min(1, -rect.top / scrollRange))
           : 1
-        list.style.transform = `translateX(${-overflow * progress}px)`
+        targetX = -overflow * progress
+        if (!rafId) rafId = requestAnimationFrame(tick)
         scheduled = false
       })
     }
