@@ -8,20 +8,24 @@ export function init() {
   if (!wrapper || !content) return
 
   function setup() {
-    // Clone pour boucle seamless
     const clone = content.cloneNode(true)
-    wrapper.appendChild(clone)
+    const contentW = content.offsetWidth
+
+    // Track flex pour mettre original + clone côte à côte
+    const track = document.createElement('div')
+    track.style.cssText = 'display:flex;flex-wrap:nowrap;will-change:transform;'
+    wrapper.insertBefore(track, content)
+    track.appendChild(content)
+    track.appendChild(clone)
 
     wrapper.style.overflow = 'hidden'
-    content.style.flexShrink = '0'
-    clone.style.flexShrink = '0'
 
     const SPEED = 60 // px/s
-    const duration = content.offsetWidth / SPEED
+    const duration = contentW / SPEED
 
-    // xPercent -100 sur chaque élément = boucle seamless
-    const tween = gsap.to([content, clone], {
-      xPercent: -100,
+    // On anime le track de 0 à -contentW, le repeat repart à 0 = seamless
+    const tween = gsap.to(track, {
+      x: -contentW,
       duration,
       ease: 'none',
       repeat: -1,
