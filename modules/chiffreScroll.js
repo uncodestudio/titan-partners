@@ -17,11 +17,14 @@ export function init() {
       if (scheduled) return
       scheduled = true
       requestAnimationFrame(() => {
-        const rect = wrapper.getBoundingClientRect()
+        const rect = section.getBoundingClientRect()
         const vh = window.innerHeight
-        // start : bas écran touche le haut de wrapper (rect.top = vh)
-        // end   : wrapper à 20% du haut de l'écran (rect.top = vh * 0.2)
-        const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.8)))
+        // start : haut écran touche haut section (rect.top = 0)
+        // end   : bas écran touche bas section (rect.top = vh - rect.height)
+        const scrollRange = rect.height - vh
+        const progress = scrollRange > 0
+          ? Math.max(0, Math.min(1, -rect.top / scrollRange))
+          : 1
         list.style.transform = `translateX(${-overflow * progress}px)`
         scheduled = false
       })
