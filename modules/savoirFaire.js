@@ -133,7 +133,23 @@ export function init() {
       gsap.registerPlugin(ScrollTrigger)
       const section = categoriesList.closest('section')
       if (section) {
-        let scrollIndex = 0
+        let scrollIndex = 0  // position DOM réelle
+        let targetIndex = 0  // position voulue par le scroll
+        let polling = false
+
+        function poll() {
+          if (targetIndex !== scrollIndex && !animating) {
+            const dir = targetIndex > scrollIndex ? 1 : -1
+            scrollIndex += dir
+            goTo(dir)
+          }
+          if (targetIndex !== scrollIndex) {
+            requestAnimationFrame(poll)
+          } else {
+            polling = false
+          }
+        }
+
         ScrollTrigger.create({
           trigger: section,
           pin: true,
@@ -146,10 +162,12 @@ export function init() {
           },
           onUpdate(self) {
             const newIndex = Math.round(self.progress * (count - 1))
-            if (newIndex === scrollIndex || animating) return
-            const dir = newIndex > scrollIndex ? 1 : -1
-            scrollIndex = newIndex
-            goTo(dir)
+            if (newIndex === targetIndex) return
+            targetIndex = newIndex
+            if (!polling) {
+              polling = true
+              requestAnimationFrame(poll)
+            }
           },
         })
       }
