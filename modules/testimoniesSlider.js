@@ -72,9 +72,28 @@ export function init() {
       nextBtn.addEventListener('click', onNext)
       prevBtn.addEventListener('click', onPrev)
 
+      // Swipe mobile
+      const swipeTarget = mobileWrapper || imgs[0].closest('section') || document.body
+      let touchStartX = 0
+      let touchStartY = 0
+      const onTouchStart = (e) => {
+        touchStartX = e.touches[0].clientX
+        touchStartY = e.touches[0].clientY
+      }
+      const onTouchEnd = (e) => {
+        const dx = touchStartX - e.changedTouches[0].clientX
+        const dy = touchStartY - e.changedTouches[0].clientY
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return
+        dx > 0 ? onNext() : onPrev()
+      }
+      swipeTarget.addEventListener('touchstart', onTouchStart, { passive: true })
+      swipeTarget.addEventListener('touchend', onTouchEnd, { passive: true })
+
       return () => {
         nextBtn.removeEventListener('click', onNext)
         prevBtn.removeEventListener('click', onPrev)
+        swipeTarget.removeEventListener('touchstart', onTouchStart)
+        swipeTarget.removeEventListener('touchend', onTouchEnd)
         if (imageListOriginalParent && imageList) imageListOriginalParent.appendChild(imageList)
         ;[imgs, avis.slice(0, count), infos.slice(0, count)].forEach((items) => {
           if (!items.length) return
