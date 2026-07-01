@@ -124,6 +124,20 @@ export function init() {
 
     updateMobileOpacity()
 
+    // Swipe mobile
+    const swipeTarget = categoriesList.closest('section') || categoriesList
+    let touchStartX = 0, touchStartY = 0
+    swipeTarget.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX
+      touchStartY = e.touches[0].clientY
+    }, { passive: true })
+    swipeTarget.addEventListener('touchend', (e) => {
+      const dx = touchStartX - e.changedTouches[0].clientX
+      const dy = touchStartY - e.changedTouches[0].clientY
+      if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return
+      goTo(dx > 0 ? 1 : -1)
+    }, { passive: true })
+
   } else {
     // ── MODE DESKTOP : catégories en scroll vertical ──
     const VISIBLE = Math.min(count, 5)
