@@ -17,10 +17,11 @@ export function init() {
       if (scheduled) return
       scheduled = true
       requestAnimationFrame(() => {
-        const rect = section.getBoundingClientRect()
+        const rect = wrapper.getBoundingClientRect()
         const vh = window.innerHeight
-        // 0 quand la section entre par le bas, 1 quand elle sort par le haut
-        const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)))
+        // start : bas écran touche le haut de wrapper (rect.top = vh)
+        // end   : wrapper à 20% du haut de l'écran (rect.top = vh * 0.2)
+        const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.8)))
         list.style.transform = `translateX(${-overflow * progress}px)`
         scheduled = false
       })
