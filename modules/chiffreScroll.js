@@ -10,22 +10,30 @@ export function init() {
 
   gsap.registerPlugin(ScrollTrigger)
 
-  // Déplacement nécessaire : bord droit de list → bord droit de wrapper
-  const overflow = list.offsetWidth - wrapper.offsetWidth
-  if (overflow <= 0) return
+  function setup() {
+    const overflow = list.offsetWidth - wrapper.offsetWidth
+    if (overflow <= 0) return
 
-  gsap.fromTo(list,
-    { x: 0 },
-    {
-      x: -overflow,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: `+=${overflow}`,
-        pin: true,
-        scrub: true,
-      },
-    }
-  )
+    gsap.fromTo(list,
+      { x: 0 },
+      {
+        x: -overflow,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: `+=${overflow}`,
+          pin: true,
+          scrub: true,
+        },
+      }
+    )
+  }
+
+  // Attendre que tout soit chargé pour des mesures correctes
+  if (document.readyState === 'complete') {
+    setup()
+  } else {
+    window.addEventListener('load', setup, { once: true })
+  }
 }
