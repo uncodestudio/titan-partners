@@ -73,7 +73,7 @@ export function init() {
       prevBtn.addEventListener('click', onPrev)
 
       // Swipe mobile
-      const swipeTarget = mobileWrapper || imgs[0].closest('section') || document.body
+      const swipeTarget = document.querySelector('.temoignages_component') || mobileWrapper || document.body
       let touchStartX = 0
       let touchStartY = 0
       const onTouchStart = (e) => {
