@@ -21,7 +21,7 @@ export function init() {
 
     const isMobile = window.matchMedia('(max-width: 767px)').matches
     const isDown = marquee.dataset.direction === 'down'
-    const speed = +marquee.dataset.speed || 20
+    const speed = (+marquee.dataset.speed || 20) * (isMobile ? 2 : 1)
     const unit = 100 / 3
 
     if (isMobile) {
