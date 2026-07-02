@@ -37,8 +37,14 @@ export function init() {
       const isLight = lightIntersecting.size > 0 && darkIntersecting.size === 0
       navbar.classList.toggle('is-light', isLight)
       const color = isLight ? COLOR_LIGHT : COLOR_DEFAULT
+      const isBelowTablet = window.matchMedia('(max-width: 991px)').matches
+      const isBelowMobile = window.matchMedia('(max-width: 479px)').matches
       NAV_ELEMENTS.forEach((selector) => {
+        const isLinkOrToggle = selector === '.navbar_link' || selector === '.navbar_dropdown-toggle'
+        const isLocale = selector === '.nav_locales-dropdown' || selector === '.locale_link'
         document.querySelectorAll(selector).forEach((el) => {
+          if (isLinkOrToggle && isBelowTablet) { el.style.color = COLOR_LIGHT; return }
+          if (isLocale && isBelowMobile) { el.style.color = COLOR_LIGHT; return }
           el.style.color = color
         })
       })
