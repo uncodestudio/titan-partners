@@ -20,12 +20,19 @@ export function init() {
       infos.length || origImages.length
     )
 
-    if (count < 2) return
-
     const mobileWrapper = document.querySelector('.temoignage_mobile-wrapper')
     const imageList = document.querySelector('.temoignages_image-list')
     const imageListOriginalParent = imageList?.parentElement
     const imgWrapper = origImages[0].parentElement
+
+    const arrowsContainer = document.querySelector('.testimonies_arrows')
+
+    if (count < 2) {
+      if (arrowsContainer) arrowsContainer.style.display = 'none'
+      const isMobile = window.matchMedia('(max-width: 767px)').matches && !!mobileWrapper && !!imageList
+      if (isMobile) mobileWrapper.appendChild(imageList)
+      return
+    }
 
     let cleanup = null
 
