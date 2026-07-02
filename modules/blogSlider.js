@@ -14,6 +14,8 @@ export function init() {
     pagination: false,
     drag: true,
     dragAngleThreshold: 30,
+    flickMaxPages: 1,
+    flickPower: 200,
     breakpoints: {
       991: {
         perPage: 1.5,
