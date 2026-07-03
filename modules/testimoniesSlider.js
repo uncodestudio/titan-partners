@@ -175,20 +175,24 @@ export function init() {
 
         const isForwardWrap = forward && nextIdx === 0 && prevIdx === count - 1
         const isBackwardWrap = !forward && nextIdx === count - 1 && prevIdx === 0
+        const isWrap = isForwardWrap || isBackwardWrap
         const delta = isForwardWrap ? -step : isBackwardWrap ? step : -(nextIdx - prevIdx) * step
 
-        const tl = gsap.timeline({
-          onComplete: () => {
-            if (isForwardWrap || isBackwardWrap) setPositions(nextIdx)
-            animating = false
-          },
-        })
+        const tl = gsap.timeline({ onComplete: () => { animating = false } })
 
-        tl.to(allItems, { y: `+=${delta}`, duration: 0.7, ease: 'power2.inOut' }, 0)
+        if (isWrap) {
+          // Pour les wraps : fade discret pour masquer le snap de repositionnement
+          tl.to(allItems, { opacity: 0, duration: 0.2 }, 0)
+          tl.call(() => setPositions(nextIdx), null, 0.2)
+          tl.set(allItems, { opacity: 1 }, 0.2)
+        } else {
+          tl.to(allItems, { y: `+=${delta}`, duration: 0.7, ease: 'power2.inOut' }, 0)
+        }
+
         if (avis[prevIdx]) tl.to(avis[prevIdx], { opacity: 0, duration: 0.3 }, 0)
-        if (avis[nextIdx]) tl.to(avis[nextIdx], { opacity: 1, duration: 0.4 }, 0.25)
+        if (avis[nextIdx]) tl.to(avis[nextIdx], { opacity: 1, duration: 0.4 }, isWrap ? 0.2 : 0.25)
         if (infos[prevIdx]) tl.to(infos[prevIdx], { opacity: 0, duration: 0.3 }, 0)
-        if (infos[nextIdx]) tl.to(infos[nextIdx], { opacity: 1, duration: 0.4 }, 0.25)
+        if (infos[nextIdx]) tl.to(infos[nextIdx], { opacity: 1, duration: 0.4 }, isWrap ? 0.2 : 0.25)
       }
 
       const onNext = () => goTo((current + 1) % count, true)
