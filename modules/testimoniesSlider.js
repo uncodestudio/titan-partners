@@ -125,9 +125,14 @@ export function init() {
       const step = measuredStep > 1 ? measuredStep : imgH || wrapperH || 100
 
       const BUFFER = Math.max(count, 5)
-      const makeClones = () => Array.from({ length: BUFFER }, (_, i) => origImages[i % count].cloneNode(true))
-      const beforeClones = makeClones()
-      const afterClones = makeClones()
+      // beforeClones: slot -1 doit être item(count-1), slot -2 = item(count-2), etc.
+      const beforeClones = Array.from({ length: BUFFER }, (_, i) => {
+        const slot = i - BUFFER
+        const itemIdx = ((slot % count) + count) % count
+        return origImages[itemIdx].cloneNode(true)
+      })
+      // afterClones: slot count = item0, slot count+1 = item1, etc.
+      const afterClones = Array.from({ length: BUFFER }, (_, i) => origImages[i % count].cloneNode(true))
 
       gsap.set([...beforeClones, ...afterClones], { position: 'absolute', top: 0, left: 0, width: '100%' })
       for (let i = BUFFER - 1; i >= 0; i--) imgWrapper.prepend(beforeClones[i])
