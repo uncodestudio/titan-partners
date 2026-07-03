@@ -124,11 +124,13 @@ export function init() {
       const measuredStep = naturalTops[1] - naturalTops[0]
       const step = measuredStep > 1 ? measuredStep : imgH || wrapperH || 100
 
-      const beforeClones = origImages.slice(0, count).map((el) => el.cloneNode(true))
-      const afterClones = origImages.slice(0, count).map((el) => el.cloneNode(true))
+      const BUFFER = Math.max(count, 5)
+      const makeClones = () => Array.from({ length: BUFFER }, (_, i) => origImages[i % count].cloneNode(true))
+      const beforeClones = makeClones()
+      const afterClones = makeClones()
 
       gsap.set([...beforeClones, ...afterClones], { position: 'absolute', top: 0, left: 0, width: '100%' })
-      for (let i = count - 1; i >= 0; i--) imgWrapper.prepend(beforeClones[i])
+      for (let i = BUFFER - 1; i >= 0; i--) imgWrapper.prepend(beforeClones[i])
       afterClones.forEach((el) => imgWrapper.append(el))
 
       imgWrapper.style.position = 'relative'
@@ -138,8 +140,9 @@ export function init() {
 
       function setPositions(activeIdx) {
         allItems.forEach((el, i) => {
-          const slot = i - count
-          const naturalTop = i >= count && i < 2 * count ? naturalTops[i - count] : 0
+          const slot = i - BUFFER
+          const isOriginal = i >= BUFFER && i < BUFFER + count
+          const naturalTop = isOriginal ? naturalTops[i - BUFFER] : 0
           gsap.set(el, { y: (slot - activeIdx) * step - naturalTop })
         })
       }
