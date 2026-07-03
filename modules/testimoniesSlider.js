@@ -115,46 +115,69 @@ export function init() {
     }
 
     function setupDesktop() {
+      // Dupliquer les items si count < 4 pour éviter le glitch de wrap
+      const addedImgClones = []
+      const addedAvisClones = []
+      const addedInfosClones = []
+      if (count < 4) {
+        origImages.slice(0, count).forEach(el => {
+          const c = el.cloneNode(true)
+          imgWrapper.appendChild(c)
+          addedImgClones.push(c)
+        })
+        if (avis[0]?.parentElement) {
+          avis.slice(0, count).forEach(el => {
+            const c = el.cloneNode(true)
+            el.parentElement.appendChild(c)
+            addedAvisClones.push(c)
+          })
+        }
+        if (infos[0]?.parentElement) {
+          infos.slice(0, count).forEach(el => {
+            const c = el.cloneNode(true)
+            el.parentElement.appendChild(c)
+            addedInfosClones.push(c)
+          })
+        }
+      }
+
+      // Tableaux étendus incluant les doublons
+      const imgs     = [...origImages.slice(0, count), ...addedImgClones]
+      const avItems  = [...avis.slice(0, count),       ...addedAvisClones]
+      const infoItems = [...infos.slice(0, count),     ...addedInfosClones]
+      const N = imgs.length
+
       const wrapperH = imgWrapper.offsetHeight
-      const imgH = origImages[0].offsetHeight
+      const imgH = imgs[0].offsetHeight
       const wrapperTop = imgWrapper.getBoundingClientRect().top
-      const naturalTops = origImages.slice(0, count)
-        .map((img) => img.getBoundingClientRect().top - wrapperTop)
+      const naturalTops = imgs.map((img) => img.getBoundingClientRect().top - wrapperTop)
 
       const measuredStep = naturalTops[1] - naturalTops[0]
       const step = measuredStep > 1 ? measuredStep : imgH || wrapperH || 100
 
-      const BUFFER = Math.max(count, 5)
-      // beforeClones: slot -1 doit être item(count-1), slot -2 = item(count-2), etc.
-      const beforeClones = Array.from({ length: BUFFER }, (_, i) => {
-        const slot = i - BUFFER
-        const itemIdx = ((slot % count) + count) % count
-        return origImages[itemIdx].cloneNode(true)
-      })
-      // afterClones: slot count = item0, slot count+1 = item1, etc.
-      const afterClones = Array.from({ length: BUFFER }, (_, i) => origImages[i % count].cloneNode(true))
+      const beforeClones = imgs.map((el) => el.cloneNode(true))
+      const afterClones  = imgs.map((el) => el.cloneNode(true))
 
       gsap.set([...beforeClones, ...afterClones], { position: 'absolute', top: 0, left: 0, width: '100%' })
-      for (let i = BUFFER - 1; i >= 0; i--) imgWrapper.prepend(beforeClones[i])
+      for (let i = N - 1; i >= 0; i--) imgWrapper.prepend(beforeClones[i])
       afterClones.forEach((el) => imgWrapper.append(el))
 
       imgWrapper.style.position = 'relative'
       if (wrapperH) imgWrapper.style.height = wrapperH + 'px'
 
-      const allItems = [...beforeClones, ...origImages.slice(0, count), ...afterClones]
+      const allItems = [...beforeClones, ...imgs, ...afterClones]
 
       function setPositions(activeIdx) {
         allItems.forEach((el, i) => {
-          const slot = i - BUFFER
-          const isOriginal = i >= BUFFER && i < BUFFER + count
-          const naturalTop = isOriginal ? naturalTops[i - BUFFER] : 0
+          const slot = i - N
+          const naturalTop = i >= N && i < 2 * N ? naturalTops[i - N] : 0
           gsap.set(el, { y: (slot - activeIdx) * step - naturalTop })
         })
       }
 
       setPositions(0)
 
-      ;[avis.slice(0, count), infos.slice(0, count)].forEach((items) => {
+      ;[avItems, infoItems].forEach((items) => {
         if (!items.length) return
         items[0].parentElement.style.display = 'grid'
         items.forEach((el) => {
@@ -173,30 +196,26 @@ export function init() {
         const prevIdx = current
         current = nextIdx
 
-        const isForwardWrap = forward && nextIdx === 0 && prevIdx === count - 1
-        const isBackwardWrap = !forward && nextIdx === count - 1 && prevIdx === 0
-        const isWrap = isForwardWrap || isBackwardWrap
+        const isForwardWrap  = forward  && nextIdx === 0     && prevIdx === N - 1
+        const isBackwardWrap = !forward && nextIdx === N - 1 && prevIdx === 0
         const delta = isForwardWrap ? -step : isBackwardWrap ? step : -(nextIdx - prevIdx) * step
 
-        const tl = gsap.timeline({ onComplete: () => { animating = false } })
+        const tl = gsap.timeline({
+          onComplete: () => {
+            if (isForwardWrap || isBackwardWrap) setPositions(nextIdx)
+            animating = false
+          },
+        })
 
-        if (isWrap) {
-          // Pour les wraps : fade discret pour masquer le snap de repositionnement
-          tl.to(allItems, { opacity: 0, duration: 0.2 }, 0)
-          tl.call(() => setPositions(nextIdx), null, 0.2)
-          tl.set(allItems, { opacity: 1 }, 0.2)
-        } else {
-          tl.to(allItems, { y: `+=${delta}`, duration: 0.7, ease: 'power2.inOut' }, 0)
-        }
-
-        if (avis[prevIdx]) tl.to(avis[prevIdx], { opacity: 0, duration: 0.3 }, 0)
-        if (avis[nextIdx]) tl.to(avis[nextIdx], { opacity: 1, duration: 0.4 }, isWrap ? 0.2 : 0.25)
-        if (infos[prevIdx]) tl.to(infos[prevIdx], { opacity: 0, duration: 0.3 }, 0)
-        if (infos[nextIdx]) tl.to(infos[nextIdx], { opacity: 1, duration: 0.4 }, isWrap ? 0.2 : 0.25)
+        tl.to(allItems, { y: `+=${delta}`, duration: 0.7, ease: 'power2.inOut' }, 0)
+        if (avItems[prevIdx])  tl.to(avItems[prevIdx],   { opacity: 0, duration: 0.3 }, 0)
+        if (avItems[nextIdx])  tl.to(avItems[nextIdx],   { opacity: 1, duration: 0.4 }, 0.25)
+        if (infoItems[prevIdx]) tl.to(infoItems[prevIdx], { opacity: 0, duration: 0.3 }, 0)
+        if (infoItems[nextIdx]) tl.to(infoItems[nextIdx], { opacity: 1, duration: 0.4 }, 0.25)
       }
 
-      const onNext = () => goTo((current + 1) % count, true)
-      const onPrev = () => goTo((current - 1 + count) % count, false)
+      const onNext = () => goTo((current + 1) % N, true)
+      const onPrev = () => goTo((current - 1 + N) % N, false)
       nextBtn.addEventListener('click', onNext)
       prevBtn.addEventListener('click', onPrev)
 
@@ -204,13 +223,16 @@ export function init() {
         nextBtn.removeEventListener('click', onNext)
         prevBtn.removeEventListener('click', onPrev)
         ;[...beforeClones, ...afterClones].forEach((el) => el.remove())
+        addedImgClones.forEach((el) => el.remove())
+        addedAvisClones.forEach((el) => el.remove())
+        addedInfosClones.forEach((el) => el.remove())
         imgWrapper.style.position = ''
         imgWrapper.style.height = ''
-        origImages.slice(0, count).forEach((el) => {
+        imgs.forEach((el) => {
           gsap.killTweensOf(el)
           gsap.set(el, { clearProps: 'y' })
         })
-        ;[avis.slice(0, count), infos.slice(0, count)].forEach((items) => {
+        ;[avItems, infoItems].forEach((items) => {
           if (!items.length) return
           items[0].parentElement.style.display = ''
           items.forEach((el) => {
