@@ -17,6 +17,7 @@ import { init as initAdnShapes } from './modules/adnShapes.js'
 import { init as initNavbarScroll } from './modules/navbarScroll.js'
 import { init as initChiffreScroll } from './modules/chiffreScroll.js'
 import { init as initCtaProofScroll } from './modules/ctaProofScroll.js'
+import { init as initRemunerationSimulator } from './modules/remunerationSimulator.js'
 
 // Toujours actifs (présents sur toutes les pages)
 initPreloader()
@@ -41,6 +42,7 @@ const moduleDetectors = {
   adnShapes:        { selector: '.layout-adn_shape1',           initFn: initAdnShapes },
   chiffreScroll:    { selector: '.chiffres_right-list',         initFn: initChiffreScroll },
   ctaProofScroll:   { selector: '.cta-proof_mobile-wrapper, .proof_mobile-wrapper', initFn: initCtaProofScroll },
+  remunerationSimulator: { selector: '[cd-wrap="paths"]',                     initFn: initRemunerationSimulator },
 }
 
 Object.entries(moduleDetectors).forEach(([name, { selector, initFn }]) => {
